@@ -1,0 +1,12 @@
+{
+  "imdb_movies.csv": {
+    "size": "6.72 MB",
+    "url": "https://www.kaggle.com/datasets/ashpalsingh1525/imdb-movies-dataset",
+    "description": "The IMDB dataset contains information about movies, including their names, release dates, user ratings, genres, overviews, cast and crew members, original titles, production status, original languages, budgets, revenues, and countries of origin. This data can be used for various analyses, such as identifying trends in movie genres, exploring the relationship between budget and revenue, and predicting the success of future movies."
+  },
+  "sp500_top10_stocks_clean.csv": {
+    "size": "4.28 MB",
+    "url": "https://www.kaggle.com/datasets/ibrahimshahrukh/top-10-s-and-p-500-stocks-2010-2026-analysis",
+    "description": "This comprehensive dataset contains 16+ years of daily stock market data (2010-2026) for the Top 10 companies in the S&P 500 index by market capitalization. The dataset includes historical OHLCV (Open, High, Low, Close, Volume) data and has been meticulously cleaned and structured for data analysis, machine learning, and financial forecasting."
+  }
+}

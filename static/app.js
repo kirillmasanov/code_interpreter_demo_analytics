@@ -156,6 +156,9 @@ function renderSampleDatasets(samples) {
   }
   samples.forEach(s => {
     const alreadyLoaded = state.files.some(f => f.filename === s.filename);
+    const wrap = document.createElement('div');
+    wrap.className = 'sample-item';
+
     const btn = document.createElement('button');
     btn.className = 'sample-chip' + (alreadyLoaded ? ' sample-chip--loaded' : '');
     btn.disabled = alreadyLoaded;
@@ -165,11 +168,30 @@ function renderSampleDatasets(samples) {
       <span class="sample-chip__name">${s.filename}</span>
       <span class="sample-chip__meta">${s.row_count} строк · ${s.columns.length} колонок</span>
       ${alreadyLoaded ? '<span class="sample-chip__check">✓</span>' : ''}`;
-    $sampleDatasets.appendChild(btn);
+    wrap.appendChild(btn);
+
+    if (s.info) {
+      const info = s.info;
+      const bubble = document.createElement('span');
+      bubble.className = 'info-bubble';
+      bubble.textContent = 'i';
+
+      const tooltip = document.createElement('div');
+      tooltip.className = 'info-tooltip';
+      tooltip.innerHTML = `
+        <div class="info-tooltip__row"><strong>Размер:</strong> ${info.size || '—'}</div>
+        ${info.url ? `<div class="info-tooltip__row"><strong>Источник:</strong> <a href="${info.url}" target="_blank" rel="noopener">${new URL(info.url).hostname}</a></div>` : ''}
+        ${info.description ? `<div class="info-tooltip__desc">${info.description}</div>` : ''}`;
+      bubble.appendChild(tooltip);
+      wrap.appendChild(bubble);
+    }
+
+    $sampleDatasets.appendChild(wrap);
   });
 }
 
 $sampleDatasets.addEventListener('click', async (e) => {
+  if (e.target.closest('.info-bubble')) return;
   const btn = e.target.closest('.sample-chip');
   if (!btn || btn.disabled) return;
   const filename = btn.dataset.filename;

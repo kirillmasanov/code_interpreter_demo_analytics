@@ -316,6 +316,104 @@ body {
   color: var(--gray-400);
 }
 
+/* ── Sample item wrapper ──────────────────────────────── */
+.sample-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  position: relative;
+}
+
+/* ── Info bubble ──────────────────────────────────────── */
+.info-bubble {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--gray-200);
+  color: var(--gray-500);
+  font-size: 11px;
+  font-weight: 700;
+  font-style: italic;
+  font-family: 'Georgia', serif;
+  cursor: help;
+  position: relative;
+  flex-shrink: 0;
+  transition: var(--transition);
+}
+.info-bubble:hover {
+  background: var(--blue-600);
+  color: var(--white);
+}
+
+/* ── Info tooltip ─────────────────────────────────────── */
+.info-tooltip {
+  display: none;
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: 340px;
+  background: var(--white);
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  padding: 14px 16px;
+  z-index: 100;
+  text-align: left;
+  font-style: normal;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  cursor: default;
+}
+.info-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: var(--white);
+}
+.info-tooltip::before {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 7px solid transparent;
+  border-top-color: var(--gray-200);
+}
+.info-bubble:hover .info-tooltip {
+  display: block;
+}
+.info-tooltip__row {
+  font-size: 13px;
+  color: var(--gray-700);
+  margin-bottom: 6px;
+  line-height: 1.4;
+}
+.info-tooltip__row strong {
+  color: var(--gray-900);
+  font-weight: 600;
+}
+.info-tooltip__row a {
+  color: var(--blue-600);
+  text-decoration: none;
+}
+.info-tooltip__row a:hover {
+  text-decoration: underline;
+}
+.info-tooltip__desc {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--gray-500);
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--gray-100);
+}
+
 /* ── Files List ───────────────────────────────────────── */
 .files-list {
   margin-top: 16px;

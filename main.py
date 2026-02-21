@@ -250,10 +250,18 @@ async def download_file(file_id: str, filename: str = Query(default="file")):
 
 @app.get("/api/sample-data")
 async def list_sample_data():
+    meta_path = SAMPLE_DATA_DIR / "metadata.json"
+    metadata: dict[str, Any] = {}
+    if meta_path.exists():
+        metadata = json.loads(meta_path.read_text(encoding="utf-8"))
+
     samples = []
     for p in sorted(SAMPLE_DATA_DIR.glob("*.csv")):
         content = p.read_bytes()
         preview = _parse_csv_preview(content, p.name)
+        file_meta = metadata.get(p.name, {})
+        if file_meta:
+            preview["info"] = file_meta
         samples.append(preview)
     return JSONResponse(samples)
 
