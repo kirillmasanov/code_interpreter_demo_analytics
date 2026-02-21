@@ -33,8 +33,17 @@ client = openai.AsyncOpenAI(
 )
 
 
+def _decode_bytes(content: bytes) -> str:
+    for enc in ("utf-8-sig", "utf-8", "cp1251", "latin-1"):
+        try:
+            return content.decode(enc)
+        except (UnicodeDecodeError, ValueError):
+            continue
+    return content.decode("latin-1", errors="replace")
+
+
 def _parse_csv_preview(content: bytes, filename: str) -> dict[str, Any]:
-    text = content.decode("utf-8-sig")
+    text = _decode_bytes(content)
     reader = csv.reader(io.StringIO(text))
     rows = list(reader)
     if not rows:
