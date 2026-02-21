@@ -16,5 +16,11 @@
     "size": "13 MB",
     "url": "https://www.kaggle.com/datasets/kaushalnandania/crypto-data-2014-2026",
     "description": "Daily historical data for the Top 50 cryptocurrencies by market capitalization from 2014 to 2026. Includes OHLCV (Open, High, Low, Close, Adj Close, Volume) data for coins such as BTC, ETH, BNB, SOL, XRP, ADA, DOGE and others. Suitable for time-series analysis, price prediction, volatility studies, and portfolio optimization."
+  },
+  "metacritic_games.csv": {
+    "title": "Metacritic Games Dataset",
+    "size": "9.9 MB",
+    "url": "https://www.kaggle.com/datasets/mohamedasak/metacritic-games-dataset",
+    "description": "A comprehensive dataset of video games from Metacritic containing titles, release dates, age ratings, genres, descriptions, platforms, metascores, user scores, sentiment labels, developer and publisher information. Useful for analyzing game rating trends, genre popularity, critic vs. user score discrepancies, and platform distribution over time."
   }
 }
