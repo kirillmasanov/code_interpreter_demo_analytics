@@ -10,13 +10,13 @@ from typing import Any
 
 import openai
 from dotenv import load_dotenv
-
-logger = logging.getLogger("demo")
-from fastapi import FastAPI, File, Query, Request, UploadFile
+from fastapi import FastAPI, File, Query, UploadFile
 from fastapi.responses import FileResponse, JSONResponse, Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
 load_dotenv()
+
+logger = logging.getLogger("demo")
 
 YANDEX_API_KEY = os.getenv("YANDEX_API_KEY", "")
 YANDEX_FOLDER_ID = os.getenv("YANDEX_FOLDER_ID", "")
@@ -26,7 +26,7 @@ SAMPLE_DATA_DIR = Path(__file__).parent / "sample_data"
 
 app = FastAPI(title="Code Interpreter Demo")
 
-client = openai.OpenAI(
+client = openai.AsyncOpenAI(
     api_key=YANDEX_API_KEY,
     base_url="https://ai.api.cloud.yandex.net/v1",
     project=YANDEX_FOLDER_ID,
@@ -61,7 +61,7 @@ async def upload_files(files: list[UploadFile] = File(...)):
         content = await f.read()
         preview = _parse_csv_preview(content, f.filename or "file.csv")
 
-        yc_file = client.files.create(
+        yc_file = await client.files.create(
             file=(f.filename, content, "text/csv"),
             purpose="assistants",
         )
@@ -88,7 +88,7 @@ async def analyze(
     async def event_stream():
         resp_id: str | None = None
         try:
-            stream = client.responses.create(
+            stream = await client.responses.create(
                 model=f"gpt://{YANDEX_FOLDER_ID}/{YANDEX_CLOUD_MODEL}",
                 input=query,
                 tool_choice="auto",
@@ -104,11 +104,11 @@ async def analyze(
 
             code_block_idx = 0
 
-            for event in stream:
+            async for event in stream:
                 etype = event.type
 
                 if etype.startswith("response.code_interpreter") or etype == "response.output_item.done":
-                    logger.info("EVENT %s | attrs: %s", etype, dir(event))
+                    logger.info("EVENT %s", etype)
                     if hasattr(event, "__dict__"):
                         logger.info("EVENT %s | dict: %s", etype, {
                             k: (repr(v)[:200] if isinstance(v, str) else type(v).__name__)
@@ -165,9 +165,8 @@ async def analyze(
                     resp_id = event.response.id
                     yield _sse("processing", {"response_id": resp_id})
 
-            # After stream ends, retrieve full response for file annotations
             if resp_id:
-                full_response = client.responses.retrieve(resp_id)
+                full_response = await client.responses.retrieve(resp_id)
                 files_info = _extract_files(full_response)
                 if files_info:
                     yield _sse("files", {"files": files_info})
@@ -210,7 +209,7 @@ def _sse(event: str, data: dict[str, Any]) -> str:
 @app.delete("/api/files/{file_id}")
 async def delete_file(file_id: str):
     try:
-        client.files.delete(file_id)
+        await client.files.delete(file_id)
     except Exception:
         pass
     return JSONResponse({"ok": True})
@@ -218,7 +217,7 @@ async def delete_file(file_id: str):
 
 @app.get("/api/files/{file_id}/download")
 async def download_file(file_id: str, filename: str = Query(default="file")):
-    content = client.files.content(file_id)
+    content = await client.files.content(file_id)
     data = content.read()
 
     ext = Path(filename).suffix.lower()
@@ -259,7 +258,7 @@ async def upload_sample(filenames: list[str]):
             continue
         content = path.read_bytes()
         preview = _parse_csv_preview(content, name)
-        yc_file = client.files.create(
+        yc_file = await client.files.create(
             file=(name, content, "text/csv"),
             purpose="assistants",
         )
