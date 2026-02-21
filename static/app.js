@@ -13,7 +13,7 @@ const $filesList       = document.getElementById('files-list');
 const $previewSection  = document.getElementById('preview-section');
 const $previewContainer= document.getElementById('preview-container');
 const $btnToAnalysis   = document.getElementById('btn-to-analysis');
-const $btnLoadSamples  = document.getElementById('btn-load-samples');
+const $sampleDatasets  = document.getElementById('sample-datasets');
 const $queryInput      = document.getElementById('query-input');
 const $filesSummary    = document.getElementById('files-summary');
 const $btnBackUpload   = document.getElementById('btn-back-upload');
@@ -137,32 +137,94 @@ async function handleFiles(fileList) {
   }
 }
 
-/* ── Load sample data ─────────────────────────────────── */
-$btnLoadSamples.addEventListener('click', async () => {
+/* ── Load sample datasets list ─────────────────────────── */
+async function loadSampleDatasets() {
+  try {
+    const res = await fetch('/api/sample-data');
+    const samples = await res.json();
+    renderSampleDatasets(samples);
+  } catch (err) {
+    console.error('Failed to load sample datasets:', err);
+  }
+}
+
+function renderSampleDatasets(samples) {
+  $sampleDatasets.innerHTML = '';
+  if (!samples.length) {
+    $sampleDatasets.innerHTML = '<span class="sample-datasets__empty">Нет доступных датасетов</span>';
+    return;
+  }
+  samples.forEach(s => {
+    const alreadyLoaded = state.files.some(f => f.filename === s.filename);
+    const btn = document.createElement('button');
+    btn.className = 'sample-chip' + (alreadyLoaded ? ' sample-chip--loaded' : '');
+    btn.disabled = alreadyLoaded;
+    btn.dataset.filename = s.filename;
+    btn.innerHTML = `
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M3 3h10v10H3z" stroke="currentColor" stroke-width="1.2"/><path d="M6 1v4M10 1v4" stroke="currentColor" stroke-width="1.2"/></svg>
+      <span class="sample-chip__name">${s.filename}</span>
+      <span class="sample-chip__meta">${s.row_count} строк · ${s.columns.length} колонок</span>
+      ${alreadyLoaded ? '<span class="sample-chip__check">✓</span>' : ''}`;
+    $sampleDatasets.appendChild(btn);
+  });
+}
+
+$sampleDatasets.addEventListener('click', async (e) => {
+  const btn = e.target.closest('.sample-chip');
+  if (!btn || btn.disabled) return;
+  const filename = btn.dataset.filename;
+  if (state.files.length >= 3) return;
+
+  btn.disabled = true;
+  btn.classList.add('sample-chip--loading');
+
   $dropZone.classList.add('uploading');
-  const phIds = showUploadPlaceholders(['macro_economics.csv', 'moex_index.csv']);
+  const phIds = showUploadPlaceholders([filename]);
 
   try {
     const res = await fetch('/api/upload-sample', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(['macro_economics.csv', 'moex_index.csv']),
+      body: JSON.stringify([filename]),
     });
     const data = await res.json();
     state.files.push(...data);
     renderFiles();
+    btn.classList.remove('sample-chip--loading');
+    btn.classList.add('sample-chip--loaded');
+    btn.innerHTML = btn.innerHTML.replace(/<span class="sample-chip__check">.*?<\/span>/, '') +
+      '<span class="sample-chip__check">✓</span>';
   } catch (err) {
     console.error('Sample upload error:', err);
+    btn.disabled = false;
+    btn.classList.remove('sample-chip--loading');
   } finally {
     removeUploadPlaceholders(phIds);
     $dropZone.classList.remove('uploading');
   }
 });
 
+loadSampleDatasets();
+
+function refreshSampleChips() {
+  $sampleDatasets.querySelectorAll('.sample-chip').forEach(btn => {
+    const loaded = state.files.some(f => f.filename === btn.dataset.filename);
+    btn.disabled = loaded || state.files.length >= 3;
+    btn.classList.toggle('sample-chip--loaded', loaded);
+    const check = btn.querySelector('.sample-chip__check');
+    if (loaded && !check) {
+      btn.insertAdjacentHTML('beforeend', '<span class="sample-chip__check">✓</span>');
+    } else if (!loaded && check) {
+      check.remove();
+    }
+  });
+}
+
 /* ── Render uploaded files ────────────────────────────── */
 function renderFiles() {
   $filesList.innerHTML = '';
   $previewContainer.innerHTML = '';
+  refreshSampleChips();
 
   if (state.files.length === 0) {
     $filesList.hidden = true;
@@ -296,21 +358,41 @@ function handleSSE(evtSource) {
   let textBuffer = '';
   let hadDeltas = false;
   let codeShownForBlock = 0;
+  const t0 = Date.now();
+  let timerInterval = null;
+
+  function elapsed() {
+    return ((Date.now() - t0) / 1000).toFixed(0);
+  }
+
+  function setStatus(msg) {
+    $statusText.textContent = `${msg} (${elapsed()}с)`;
+  }
+
+  timerInterval = setInterval(() => {
+    const current = $statusText.textContent.replace(/\s*\(\d+с\)$/, '');
+    $statusText.textContent = `${current} (${elapsed()}с)`;
+  }, 1000);
+
+  function stopTimer() {
+    if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+  }
 
   function on(event, cb) {
     evtSource.addEventListener(event, e => cb(JSON.parse(e.data)));
   }
 
   on('processing', () => {
-    $statusText.textContent = 'Модель обрабатывает запрос...';
+    setStatus('Модель обрабатывает запрос…');
   });
 
-  on('reasoning_delta', d => {
-    $statusText.textContent = 'Модель размышляет...';
+  on('reasoning_delta', () => {
+    setStatus('Модель размышляет…');
   });
 
   on('code_delta', d => {
     hadDeltas = true;
+    setStatus('Генерация кода…');
     $codeOutput.textContent += d.delta;
     $codeStatus.textContent = 'Генерация';
     $codeStatus.className = 'code-status running';
@@ -327,17 +409,22 @@ function handleSSE(evtSource) {
     }
     hadDeltas = false;
     $codeOutput.textContent += '\n# ── Код сгенерирован (блок ' + block + ') ──\n';
+    setStatus('Запуск кода в контейнере (блок ' + block + ')…');
     $codeStatus.textContent = 'Выполняется';
     $codeStatus.className = 'code-status running';
     $codeOutput.parentElement.scrollTop = $codeOutput.parentElement.scrollHeight;
   });
 
-  on('code_running', () => {
+  on('code_running', d => {
+    const block = (d && d.block) || '';
+    setStatus('Выполнение кода в контейнере' + (block ? ' (блок ' + block + ')' : '') + '…');
     $codeStatus.textContent = 'Выполняется';
     $codeStatus.className = 'code-status running';
   });
 
-  on('code_interpreting', () => {
+  on('code_interpreting', d => {
+    const block = (d && d.block) || '';
+    setStatus('Интерпретация результатов' + (block ? ' (блок ' + block + ')' : '') + '…');
     $codeStatus.textContent = 'Интерпретация';
     $codeStatus.className = 'code-status running';
   });
@@ -345,6 +432,7 @@ function handleSSE(evtSource) {
   on('code_completed', d => {
     const block = (d && d.block) || 0;
     $codeOutput.textContent += '\n# ── Выполнение завершено (блок ' + block + ') ──\n';
+    setStatus('Код выполнен, анализ результатов…');
     $codeStatus.textContent = 'Готово';
     $codeStatus.className = 'code-status finished';
   });
@@ -362,12 +450,14 @@ function handleSSE(evtSource) {
   });
 
   on('text_delta', d => {
+    setStatus('Формирование ответа…');
     textBuffer += d.delta;
     $textOutput.hidden = false;
     $textContent.innerHTML = marked.parse(textBuffer);
   });
 
   on('files', d => {
+    setStatus('Получение файлов…');
     if (!d.files || !d.files.length) return;
 
     d.files.forEach(f => {
@@ -407,18 +497,21 @@ function handleSSE(evtSource) {
   });
 
   on('error', d => {
+    stopTimer();
     $statusBar.className = 'status-bar error';
     $statusText.textContent = `Ошибка: ${d.message}`;
     evtSource.close();
   });
 
   on('done', () => {
+    stopTimer();
     $statusBar.className = 'status-bar done';
-    $statusText.textContent = 'Анализ завершён';
+    $statusText.textContent = `Анализ завершён за ${elapsed()}с`;
     evtSource.close();
   });
 
   evtSource.onerror = () => {
+    stopTimer();
     $statusBar.className = 'status-bar error';
     $statusText.textContent = 'Соединение потеряно';
     evtSource.close();
