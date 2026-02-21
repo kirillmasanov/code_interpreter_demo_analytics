@@ -11,16 +11,22 @@
     "url": "https://www.kaggle.com/datasets/ibrahimshahrukh/top-10-s-and-p-500-stocks-2010-2026-analysis",
     "description": "This comprehensive dataset contains 16+ years of daily stock market data (2010-2026) for the Top 10 companies in the S&P 500 index by market capitalization. The dataset includes historical OHLCV (Open, High, Low, Close, Volume) data and has been meticulously cleaned and structured for data analysis, machine learning, and financial forecasting."
   },
+  "metacritic_games.csv": {
+    "title": "Metacritic Games Dataset",
+    "size": "9.9 MB",
+    "url": "https://www.kaggle.com/datasets/mohamedasak/metacritic-games-dataset",
+    "description": "A comprehensive dataset of video games from Metacritic containing titles, release dates, age ratings, genres, descriptions, platforms, metascores, user scores, sentiment labels, developer and publisher information. Useful for analyzing game rating trends, genre popularity, critic vs. user score discrepancies, and platform distribution over time."
+  },
   "crypto50_combined.csv": {
     "title": "Top 50 Cryptocurrency Data: 2014-2026",
     "size": "13 MB",
     "url": "https://www.kaggle.com/datasets/kaushalnandania/crypto-data-2014-2026",
     "description": "Daily historical data for the Top 50 cryptocurrencies by market capitalization from 2014 to 2026. Includes OHLCV (Open, High, Low, Close, Adj Close, Volume) data for coins such as BTC, ETH, BNB, SOL, XRP, ADA, DOGE and others. Suitable for time-series analysis, price prediction, volatility studies, and portfolio optimization."
   },
-  "metacritic_games.csv": {
-    "title": "Metacritic Games Dataset",
-    "size": "9.9 MB",
-    "url": "https://www.kaggle.com/datasets/mohamedasak/metacritic-games-dataset",
-    "description": "A comprehensive dataset of video games from Metacritic containing titles, release dates, age ratings, genres, descriptions, platforms, metascores, user scores, sentiment labels, developer and publisher information. Useful for analyzing game rating trends, genre popularity, critic vs. user score discrepancies, and platform distribution over time."
+  "kindle_data-v2.csv": {
+    "title": "Amazon Kindle Books Dataset (130K+ books)",
+    "size": "36 MB",
+    "url": "https://www.kaggle.com/datasets/asaniczka/amazon-kindle-books-dataset-2023-130k-books",
+    "description": "A large dataset of 130,000+ Amazon Kindle books containing titles, authors, sellers, star ratings, review counts, prices, Kindle Unlimited availability, categories, bestseller/editor's pick/Goodreads choice flags, and publication dates. Ideal for analyzing book pricing strategies, rating distributions, category trends, and the impact of Kindle Unlimited on the marketplace."
   }
 }
