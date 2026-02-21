@@ -156,37 +156,32 @@ function renderSampleDatasets(samples) {
   }
   samples.forEach(s => {
     const alreadyLoaded = state.files.some(f => f.filename === s.filename);
-    const wrap = document.createElement('div');
-    wrap.className = 'sample-item';
+    const info = s.info || {};
+    const displayName = info.title || s.filename;
 
     const btn = document.createElement('button');
     btn.className = 'sample-chip' + (alreadyLoaded ? ' sample-chip--loaded' : '');
     btn.disabled = alreadyLoaded;
     btn.dataset.filename = s.filename;
-    btn.innerHTML = `
-      <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M3 3h10v10H3z" stroke="currentColor" stroke-width="1.2"/><path d="M6 1v4M10 1v4" stroke="currentColor" stroke-width="1.2"/></svg>
-      <span class="sample-chip__name">${s.filename}</span>
-      <span class="sample-chip__meta">${s.row_count} строк · ${s.columns.length} колонок</span>
-      ${alreadyLoaded ? '<span class="sample-chip__check">✓</span>' : ''}`;
-    wrap.appendChild(btn);
 
-    if (s.info) {
-      const info = s.info;
-      const bubble = document.createElement('span');
-      bubble.className = 'info-bubble';
-      bubble.textContent = 'i';
-
-      const tooltip = document.createElement('div');
-      tooltip.className = 'info-tooltip';
-      tooltip.innerHTML = `
-        <div class="info-tooltip__row"><strong>Размер:</strong> ${info.size || '—'}</div>
-        ${info.url ? `<div class="info-tooltip__row"><strong>Источник:</strong> <a href="${info.url}" target="_blank" rel="noopener">${new URL(info.url).hostname}</a></div>` : ''}
-        ${info.description ? `<div class="info-tooltip__desc">${info.description}</div>` : ''}`;
-      bubble.appendChild(tooltip);
-      wrap.appendChild(bubble);
+    let tooltipHtml = '';
+    if (info.title || s.filename || s.row_count != null) {
+      const rows = [];
+      rows.push(`<div class="info-tooltip__row"><strong>Файл:</strong> ${s.filename}</div>`);
+      rows.push(`<div class="info-tooltip__row"><strong>Строк:</strong> ${s.row_count} · <strong>Колонок:</strong> ${s.columns.length}</div>`);
+      if (info.size) rows.push(`<div class="info-tooltip__row"><strong>Размер:</strong> ${info.size}</div>`);
+      if (info.url) rows.push(`<div class="info-tooltip__row"><strong>Источник:</strong> <a href="${info.url}" target="_blank" rel="noopener">${new URL(info.url).hostname}</a></div>`);
+      if (info.description) rows.push(`<div class="info-tooltip__desc">${info.description}</div>`);
+      tooltipHtml = `<span class="info-bubble" onclick="event.stopPropagation()">i<div class="info-tooltip">${rows.join('')}</div></span>`;
     }
 
-    $sampleDatasets.appendChild(wrap);
+    btn.innerHTML = `
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M3 3h10v10H3z" stroke="currentColor" stroke-width="1.2"/><path d="M6 1v4M10 1v4" stroke="currentColor" stroke-width="1.2"/></svg>
+      <span class="sample-chip__name">${displayName}</span>
+      ${tooltipHtml}
+      ${alreadyLoaded ? '<span class="sample-chip__check">✓</span>' : ''}`;
+
+    $sampleDatasets.appendChild(btn);
   });
 }
 
