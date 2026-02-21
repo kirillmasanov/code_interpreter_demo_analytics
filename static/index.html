@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Code Interpreter — AI Studio Demo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+
+<!-- ── Header ──────────────────────────────────────────── -->
+<header class="header">
+  <div class="header__inner">
+    <div class="header__logo">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect width="24" height="24" rx="6" fill="#fff"/><path d="M7 7h10v2H7V7zm0 4h10v2H7v-2zm0 4h7v2H7v-2z" fill="#0077FF"/></svg>
+      <span class="header__title">AI Studio <span class="header__badge">Code Interpreter</span></span>
+    </div>
+  </div>
+</header>
+
+<!-- ── Steps indicator ────────────────────────────────── -->
+<div class="steps-bar">
+  <div class="steps-bar__inner">
+    <button class="step active" data-step="1">
+      <span class="step__num">1</span>
+      <span class="step__label">Загрузка данных</span>
+    </button>
+    <div class="step__line"></div>
+    <button class="step" data-step="2">
+      <span class="step__num">2</span>
+      <span class="step__label">Аналитический запрос</span>
+    </button>
+    <div class="step__line"></div>
+    <button class="step" data-step="3">
+      <span class="step__num">3</span>
+      <span class="step__label">Результаты</span>
+    </button>
+  </div>
+</div>
+
+<!-- ── Main content ───────────────────────────────────── -->
+<main class="main">
+
+  <!-- Screen 1: Upload -->
+  <section id="screen-upload" class="screen active">
+    <div class="card">
+      <h2>Загрузите CSV-файлы</h2>
+      <p class="subtitle">Перетащите файлы или нажмите для выбора (до 3 файлов)</p>
+
+      <div id="drop-zone" class="drop-zone">
+        <div class="drop-zone__icon">
+          <svg width="48" height="48" viewBox="0 0 48 48" fill="none"><path d="M24 4v28m0 0l-8-8m8 8l8-8" stroke="#0077FF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 34v6a4 4 0 004 4h24a4 4 0 004-4v-6" stroke="#0077FF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <p>Перетащите CSV-файлы сюда</p>
+        <span class="drop-zone__or">или</span>
+        <label class="btn btn--outline">
+          Выбрать файлы
+          <input type="file" id="file-input" accept=".csv" multiple hidden>
+        </label>
+      </div>
+
+      <div class="sample-data-section">
+        <button id="btn-load-samples" class="btn btn--ghost">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M2 8h12M2 12h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          Загрузить демо-данные (макроэкономика + MOEX)
+        </button>
+      </div>
+    </div>
+
+    <div id="files-list" class="files-list" hidden></div>
+
+    <div id="preview-section" hidden>
+      <div id="preview-container"></div>
+      <div class="actions-row">
+        <button id="btn-to-analysis" class="btn btn--primary" disabled>Продолжить к анализу</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Screen 2: Query -->
+  <section id="screen-query" class="screen">
+    <div class="card">
+      <h2>Опишите аналитическую задачу</h2>
+      <div id="files-summary" class="files-summary"></div>
+
+      <div class="query-area">
+        <textarea
+          id="query-input"
+          class="query-textarea"
+          rows="4"
+          placeholder="Объедини данные по годам, построй график зависимости, рассчитай корреляцию и сделай вывод..."
+        ></textarea>
+      </div>
+
+      <div class="prompt-chips">
+        <span class="prompt-chips__label">Примеры:</span>
+        <button class="chip" data-prompt="Объедини данные по годам. Построй график зависимости индекса MOEX от ВВП. Рассчитай корреляцию. Сделай вывод.">Корреляция MOEX и ВВП</button>
+        <button class="chip" data-prompt="Найди аномалии в данных. Построй графики с выделением аномальных периодов. Объясни возможные причины.">Поиск аномалий</button>
+        <button class="chip" data-prompt="Проведи стресс-анализ: смоделируй падение ВВП на 10% и оцени влияние на индекс MOEX. Построй графики сценариев.">Стресс-анализ</button>
+        <button class="chip" data-prompt="Построй тренды по всем показателям. Рассчитай средние темпы роста. Сделай прогноз на 3 года вперед. Визуализируй.">Прогноз трендов</button>
+      </div>
+
+      <div class="actions-row">
+        <button id="btn-back-upload" class="btn btn--outline">Назад</button>
+        <button id="btn-run-analysis" class="btn btn--primary">Запустить анализ</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Screen 3: Results -->
+  <section id="screen-results" class="screen">
+    <div id="results-container">
+
+      <!-- Status bar -->
+      <div id="status-bar" class="status-bar">
+        <div class="spinner"></div>
+        <span id="status-text">Подключение к модели...</span>
+      </div>
+
+      <!-- Code execution panel (collapsible) -->
+      <details id="code-panel" class="card code-panel" open>
+        <summary class="code-panel__header">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M5 3l-4 5 4 5M11 3l4 5-4 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Выполнение кода
+          <span id="code-status" class="code-status"></span>
+        </summary>
+        <pre class="code-block"><code id="code-output"></code></pre>
+      </details>
+
+      <!-- AI text output -->
+      <div id="text-output" class="card text-output" hidden>
+        <h3>Результат анализа</h3>
+        <div id="text-content" class="text-content"></div>
+      </div>
+
+      <!-- Charts/images -->
+      <div id="charts-section" class="charts-section" hidden>
+        <h3>Графики и визуализации</h3>
+        <div id="charts-container" class="charts-grid"></div>
+      </div>
+
+      <!-- Export -->
+      <div id="export-section" class="card export-section" hidden>
+        <h3>Экспорт результатов</h3>
+        <div id="export-buttons" class="export-buttons"></div>
+      </div>
+
+    </div>
+
+    <div class="actions-row" style="margin-top: 24px;">
+      <button id="btn-new-query" class="btn btn--outline">Новый запрос</button>
+      <button id="btn-start-over" class="btn btn--ghost">Начать заново</button>
+    </div>
+  </section>
+
+</main>
+
+<script src="/static/app.js"></script>
+</body>
+</html>
