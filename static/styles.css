@@ -54,11 +54,19 @@ body {
   padding: 0 24px;
   display: flex;
   align-items: center;
+  justify-content: space-between;
 }
-.header__logo {
+.header__left,
+.header__right {
+  flex: 1;
   display: flex;
   align-items: center;
-  gap: 12px;
+}
+.header__right {
+  justify-content: flex-end;
+}
+.header__center {
+  flex-shrink: 0;
 }
 .header__title {
   font-weight: 600;
@@ -72,6 +80,13 @@ body {
   font-size: 12px;
   font-weight: 500;
   margin-left: 4px;
+}
+.header__demo {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--gray-400);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 /* ── Steps Bar ────────────────────────────────────────── */
