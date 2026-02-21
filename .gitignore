@@ -24,8 +24,7 @@ ENV/
 *~
 .DS_Store
 
-# uv
-uv.lock
+# uv.lock нужен для Docker (uv sync --frozen)
 
 # Output artifacts
 output/

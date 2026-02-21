@@ -114,9 +114,7 @@ $fileInput.addEventListener('change', () => {
 async function handleFiles(fileList) {
   const arr = Array.from(fileList).filter(f => f.name.endsWith('.csv'));
   if (!arr.length) return;
-  const allowed = 3 - state.files.length;
-  const batch = arr.slice(0, allowed);
-  if (!batch.length) return;
+  const batch = arr;
 
   $dropZone.classList.add('uploading');
   const phIds = showUploadPlaceholders(batch.map(f => f.name));
@@ -190,8 +188,6 @@ $sampleDatasets.addEventListener('click', async (e) => {
   const btn = e.target.closest('.sample-chip');
   if (!btn || btn.disabled) return;
   const filename = btn.dataset.filename;
-  if (state.files.length >= 3) return;
-
   btn.disabled = true;
   btn.classList.add('sample-chip--loading');
 
@@ -226,7 +222,7 @@ loadSampleDatasets();
 function refreshSampleChips() {
   $sampleDatasets.querySelectorAll('.sample-chip').forEach(btn => {
     const loaded = state.files.some(f => f.filename === btn.dataset.filename);
-    btn.disabled = loaded || state.files.length >= 3;
+    btn.disabled = loaded;
     btn.classList.toggle('sample-chip--loaded', loaded);
     const check = btn.querySelector('.sample-chip__check');
     if (loaded && !check) {
