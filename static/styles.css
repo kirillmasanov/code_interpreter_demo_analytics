@@ -665,24 +665,26 @@ table.preview-table {
   align-items: center;
   gap: 8px;
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
-  color: var(--gray-700);
+  color: var(--gray-900);
   padding: 0;
   list-style: none;
 }
 .code-panel__header::-webkit-details-marker { display: none; }
-.code-panel__header::before {
-  content: '\25B8';
-  font-size: 12px;
+.code-panel__chevron {
+  flex-shrink: 0;
+  color: var(--gray-400);
   transition: transform var(--transition);
 }
-details[open] > .code-panel__header::before { transform: rotate(90deg); }
+details[open] > .code-panel__header .code-panel__chevron {
+  transform: rotate(90deg);
+}
 .code-status {
   font-size: 12px;
   font-weight: 500;
-  padding: 2px 8px;
-  border-radius: 4px;
+  padding: 2px 10px;
+  border-radius: 12px;
   margin-left: auto;
 }
 .code-status.running {
