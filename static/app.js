@@ -301,7 +301,7 @@ $filesList.addEventListener('click', async (e) => {
 /* ── Step navigation buttons ──────────────────────────── */
 $btnToAnalysis.addEventListener('click', () => {
   $filesSummary.innerHTML = state.files
-    .map(f => `<span class="files-summary__tag"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M3 3h10v10H3z" stroke="currentColor" stroke-width="1.2"/></svg>${f.filename}</span>`)
+    .map(f => `<span class="files-summary__tag"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M4 1h5l4 4v9a1 1 0 01-1 1H4a1 1 0 01-1-1V2a1 1 0 011-1z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/><path d="M9 1v4h4" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg>${f.filename}</span>`)
     .join('');
   goToStep(2);
 });
