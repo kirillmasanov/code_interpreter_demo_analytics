@@ -123,7 +123,7 @@ async function handleFiles(fileList) {
   batch.forEach(f => fd.append('files', f));
 
   try {
-    const res = await fetch('/api/upload', { method: 'POST', body: fd });
+    const res = await fetch('api/upload', { method: 'POST', body: fd });
     const data = await res.json();
     state.files.push(...data);
     renderFiles();
@@ -138,7 +138,7 @@ async function handleFiles(fileList) {
 /* ── Load sample datasets list ─────────────────────────── */
 async function loadSampleDatasets() {
   try {
-    const res = await fetch('/api/sample-data');
+    const res = await fetch('api/sample-data');
     const samples = await res.json();
     renderSampleDatasets(samples);
   } catch (err) {
@@ -195,7 +195,7 @@ $sampleDatasets.addEventListener('click', async (e) => {
   const phIds = showUploadPlaceholders([filename]);
 
   try {
-    const res = await fetch('/api/upload-sample', {
+    const res = await fetch('api/upload-sample', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify([filename]),
@@ -288,7 +288,7 @@ $filesList.addEventListener('click', async (e) => {
   const file = state.files[idx];
   if (!file) return;
   if (file.file_id) {
-    try { await fetch(`/api/files/${file.file_id}`, { method: 'DELETE' }); } catch {}
+    try { await fetch(`api/files/${file.file_id}`, { method: 'DELETE' }); } catch {}
   }
   state.files.splice(idx, 1);
   renderFiles();
@@ -312,7 +312,7 @@ $btnStartOver.addEventListener('click', async () => {
   ].filter(Boolean);
 
   await Promise.allSettled(
-    allFiles.map(id => fetch(`/api/files/${id}`, { method: 'DELETE' }))
+    allFiles.map(id => fetch(`api/files/${id}`, { method: 'DELETE' }))
   );
 
   state.files = [];
@@ -347,7 +347,7 @@ function startAnalysis() {
   params.set('query', query);
   fileIds.forEach(id => params.append('file_ids', id));
 
-  const evtSource = new EventSource(`/api/analyze?${params}`);
+  const evtSource = new EventSource(`api/analyze?${params}`);
   handleSSE(evtSource);
 }
 
@@ -486,10 +486,10 @@ function handleSSE(evtSource) {
         const card = document.createElement('div');
         card.className = 'chart-card';
         card.innerHTML = `
-          <img src="/api/files/${f.file_id}/download?filename=${encodeURIComponent(f.filename)}" alt="${f.filename}">
+          <img src="api/files/${f.file_id}/download?filename=${encodeURIComponent(f.filename)}" alt="${f.filename}">
           <div class="chart-card__footer">
             <span>${f.filename}</span>
-            <a href="/api/files/${f.file_id}/download?filename=${encodeURIComponent(f.filename)}" class="btn btn--small btn--outline" download>Скачать</a>
+            <a href="api/files/${f.file_id}/download?filename=${encodeURIComponent(f.filename)}" class="btn btn--small btn--outline" download>Скачать</a>
           </div>`;
         $chartsContainer.appendChild(card);
       });
@@ -500,7 +500,7 @@ function handleSSE(evtSource) {
       downloads.forEach(f => {
         const a = document.createElement('a');
         a.className = 'export-btn';
-        a.href = `/api/files/${f.file_id}/download?filename=${encodeURIComponent(f.filename)}`;
+        a.href = `api/files/${f.file_id}/download?filename=${encodeURIComponent(f.filename)}`;
         a.download = f.filename;
         const ext = f.filename.split('.').pop().toUpperCase();
         a.innerHTML = `<span class="export-btn__icon">${ext}</span> ${f.filename}`;
