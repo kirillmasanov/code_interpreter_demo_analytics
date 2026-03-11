@@ -35,6 +35,31 @@ const $btnStartOver    = document.getElementById('btn-start-over');
 const $followupSection = document.getElementById('followup-section');
 const $followupInput   = document.getElementById('followup-input');
 const $btnFollowup     = document.getElementById('btn-followup');
+const $modelSelect     = document.getElementById('model-select');
+
+/* ── Load available models ────────────────────────────── */
+function getSelectedModel() {
+  const active = $modelSelect.querySelector('.model-option--active');
+  return active ? active.dataset.model : '';
+}
+
+(async function loadModels() {
+  try {
+    const res = await fetch('api/models');
+    const models = await res.json();
+    $modelSelect.innerHTML = models
+      .map((m, i) => `<button class="model-option${i === 0 ? ' model-option--active' : ''}" data-model="${m.id}">${m.name}</button>`)
+      .join('');
+    $modelSelect.addEventListener('click', e => {
+      const btn = e.target.closest('.model-option');
+      if (!btn) return;
+      $modelSelect.querySelectorAll('.model-option').forEach(b => b.classList.remove('model-option--active'));
+      btn.classList.add('model-option--active');
+    });
+  } catch (err) {
+    console.error('Failed to load models:', err);
+  }
+})();
 
 /* ── Navigation ───────────────────────────────────────── */
 function goToStep(n) {
@@ -349,6 +374,7 @@ function startAnalysis() {
   const fileIds = state.files.map(f => f.file_id).filter(Boolean);
   const params = new URLSearchParams();
   params.set('query', query);
+  params.set('model', getSelectedModel());
   fileIds.forEach(id => params.append('file_ids', id));
 
   const evtSource = new EventSource(`api/analyze?${params}`);
@@ -381,6 +407,7 @@ function startFollowUp() {
   const fileIds = state.files.map(f => f.file_id).filter(Boolean);
   const params = new URLSearchParams();
   params.set('query', query);
+  params.set('model', getSelectedModel());
   params.set('previous_response_id', state.responseId);
   fileIds.forEach(id => params.append('file_ids', id));
 

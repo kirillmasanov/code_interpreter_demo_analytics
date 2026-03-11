@@ -20,7 +20,11 @@ logger = logging.getLogger("demo")
 
 YANDEX_API_KEY = os.getenv("YANDEX_API_KEY", "")
 YANDEX_FOLDER_ID = os.getenv("YANDEX_FOLDER_ID", "")
-YANDEX_CLOUD_MODEL = os.getenv("YANDEX_CLOUD_MODEL", "qwen3-235b-a22b-fp8/latest")
+AVAILABLE_MODELS = [
+    {"id": "qwen3-235b-a22b-fp8/latest", "name": "Qwen3 235B"},
+    {"id": "deepseek-v32/", "name": "DeepSeek V3.2"},
+]
+DEFAULT_MODEL = AVAILABLE_MODELS[0]["id"]
 
 SAMPLE_DATA_DIR = Path(__file__).parent / "sample_data"
 
@@ -85,11 +89,17 @@ async def upload_files(files: list[UploadFile] = File(...)):
     return JSONResponse(results)
 
 
+@app.get("/api/models")
+async def list_models():
+    return JSONResponse(AVAILABLE_MODELS)
+
+
 @app.get("/api/analyze")
 async def analyze(
     query: str = Query(...),
     file_ids: list[str] = Query(default=[]),
     previous_response_id: str | None = Query(default=None),
+    model: str = Query(default=DEFAULT_MODEL),
 ):
     container_cfg: dict[str, Any] = {"type": "auto"}
     if file_ids:
@@ -99,7 +109,7 @@ async def analyze(
         resp_id: str | None = None
         try:
             create_kwargs: dict[str, Any] = {
-                "model": f"gpt://{YANDEX_FOLDER_ID}/{YANDEX_CLOUD_MODEL}",
+                "model": f"gpt://{YANDEX_FOLDER_ID}/{model}",
                 "input": query,
                 "stream": True,
                 "temperature": 0.3,

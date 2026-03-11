@@ -190,6 +190,53 @@ body {
   margin-bottom: 20px;
 }
 
+/* ── Model Selector ──────────────────────────────────── */
+.model-selector {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--gray-200);
+}
+.model-selector__label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--gray-700);
+  white-space: nowrap;
+}
+.model-options {
+  display: flex;
+  gap: 8px;
+}
+.model-option {
+  padding: 8px 18px;
+  border: 1.5px solid var(--gray-300);
+  border-radius: 20px;
+  background: var(--white);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--gray-600);
+  cursor: pointer;
+  transition: var(--transition);
+}
+.model-option:hover {
+  border-color: var(--blue-600);
+  color: var(--blue-600);
+  background: var(--blue-50);
+}
+.model-option--active {
+  border-color: var(--blue-600);
+  background: var(--blue-600);
+  color: var(--white);
+}
+.model-option--active:hover {
+  background: var(--blue-700);
+  border-color: var(--blue-700);
+  color: var(--white);
+}
+
 /* ── Drop Zone ────────────────────────────────────────── */
 .drop-zone {
   border: 2px dashed var(--gray-300);
