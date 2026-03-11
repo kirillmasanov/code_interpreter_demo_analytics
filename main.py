@@ -89,6 +89,7 @@ async def upload_files(files: list[UploadFile] = File(...)):
 async def analyze(
     query: str = Query(...),
     file_ids: list[str] = Query(default=[]),
+    previous_response_id: str | None = Query(default=None),
 ):
     container_cfg: dict[str, Any] = {"type": "auto"}
     if file_ids:
@@ -97,19 +98,23 @@ async def analyze(
     async def event_stream():
         resp_id: str | None = None
         try:
-            stream = await client.responses.create(
-                model=f"gpt://{YANDEX_FOLDER_ID}/{YANDEX_CLOUD_MODEL}",
-                input=query,
-                tool_choice="auto",
-                temperature=0.3,
-                tools=[
+            create_kwargs: dict[str, Any] = {
+                "model": f"gpt://{YANDEX_FOLDER_ID}/{YANDEX_CLOUD_MODEL}",
+                "input": query,
+                "stream": True,
+                "temperature": 0.3,
+                "tool_choice": "auto",
+                "tools": [
                     {
                         "type": "code_interpreter",
                         "container": container_cfg,
                     }
                 ],
-                stream=True,
-            )
+            }
+            if previous_response_id:
+                create_kwargs["previous_response_id"] = previous_response_id
+
+            stream = await client.responses.create(**create_kwargs)
 
             code_block_idx = 0
 
@@ -180,7 +185,7 @@ async def analyze(
                 if files_info:
                     yield _sse("files", {"files": files_info})
 
-            yield _sse("done", {})
+            yield _sse("done", {"response_id": resp_id})
 
         except Exception as exc:
             yield _sse("error", {"message": str(exc)})
