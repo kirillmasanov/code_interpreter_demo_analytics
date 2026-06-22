@@ -16,6 +16,10 @@ from fastapi.staticfiles import StaticFiles
 
 load_dotenv()
 
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(name)s: %(message)s",
+)
 logger = logging.getLogger("demo")
 
 YANDEX_API_KEY = os.getenv("YANDEX_API_KEY", "")
@@ -62,6 +66,42 @@ def _parse_csv_preview(content: bytes, filename: str) -> dict[str, Any]:
         "columns": columns,
         "preview_rows": preview,
         "row_count": len(data_rows),
+    }
+
+
+def _open_csv_text(path: Path):
+    """Open a CSV file as a text stream, trying several encodings."""
+    for enc in ("utf-8-sig", "utf-8", "cp1251"):
+        try:
+            with open(path, encoding=enc) as fh:
+                fh.read(8192)  # probe that the encoding decodes
+            return open(path, encoding=enc, newline="")
+        except (UnicodeDecodeError, ValueError):
+            continue
+    return open(path, encoding="latin-1", errors="replace", newline="")
+
+
+def _parse_csv_preview_file(path: Path) -> dict[str, Any]:
+    """Stream a CSV file to build a preview without loading it fully into memory."""
+    with _open_csv_text(path) as fh:
+        reader = csv.reader(fh)
+        try:
+            columns = next(reader)
+        except StopIteration:
+            return {"filename": path.name, "columns": [], "preview_rows": [], "row_count": 0}
+
+        preview: list[list[str]] = []
+        row_count = 0
+        for row in reader:
+            row_count += 1
+            if len(preview) < 10:
+                preview.append(row)
+
+    return {
+        "filename": path.name,
+        "columns": columns,
+        "preview_rows": preview,
+        "row_count": row_count,
     }
 
 
@@ -264,22 +304,28 @@ async def download_file(file_id: str, filename: str = Query(default="file")):
     )
 
 
+_sample_data_cache: list[dict[str, Any]] | None = None
+
+
 @app.get("/api/sample-data")
 async def list_sample_data():
-    meta_path = SAMPLE_DATA_DIR / "metadata.json"
-    metadata: dict[str, Any] = {}
-    if meta_path.exists():
-        metadata = json.loads(meta_path.read_text(encoding="utf-8"))
+    global _sample_data_cache
+    if _sample_data_cache is None:
+        meta_path = SAMPLE_DATA_DIR / "metadata.json"
+        metadata: dict[str, Any] = {}
+        if meta_path.exists():
+            metadata = json.loads(meta_path.read_text(encoding="utf-8"))
 
-    samples = []
-    for p in sorted(SAMPLE_DATA_DIR.glob("*.csv")):
-        content = p.read_bytes()
-        preview = _parse_csv_preview(content, p.name)
-        file_meta = metadata.get(p.name, {})
-        if file_meta:
-            preview["info"] = file_meta
-        samples.append(preview)
-    return JSONResponse(samples)
+        samples = []
+        for p in sorted(SAMPLE_DATA_DIR.glob("*.csv")):
+            preview = _parse_csv_preview_file(p)
+            file_meta = metadata.get(p.name, {})
+            if file_meta:
+                preview["info"] = file_meta
+            samples.append(preview)
+        _sample_data_cache = samples
+
+    return JSONResponse(_sample_data_cache)
 
 
 @app.post("/api/upload-sample")
