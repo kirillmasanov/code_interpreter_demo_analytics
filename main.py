@@ -21,8 +21,9 @@ logger = logging.getLogger("demo")
 YANDEX_API_KEY = os.getenv("YANDEX_API_KEY", "")
 YANDEX_FOLDER_ID = os.getenv("YANDEX_FOLDER_ID", "")
 AVAILABLE_MODELS = [
-    {"id": "qwen3-235b-a22b-fp8/latest", "name": "Qwen3 235B"},
-    {"id": "deepseek-v32/", "name": "DeepSeek V3.2"},
+    {"id": "deepseek-v4-flash", "name": "DeepSeek V4 Flash"},
+    {"id": "qwen3-235b-a22b-fp8", "name": "Qwen3 235B"},
+    {"id": "qwen3.6-35b-a3b", "name": "Qwen3.6 35B"},
 ]
 DEFAULT_MODEL = AVAILABLE_MODELS[0]["id"]
 
